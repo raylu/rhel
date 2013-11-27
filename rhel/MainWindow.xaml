@@ -1,7 +1,7 @@
 ﻿<Window x:Class="rhel.MainWindow"
         xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
         xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
-        Title="Rapid Heavy EVE Launcher" Height="350" Width="376" Loaded="Window_Loaded">
+        Title="Rapid Heavy EVE Launcher" Height="350" Width="376" Loaded="Window_Loaded" Closing="Window_Closing" ResizeMode="CanMinimize" StateChanged="Window_StateChanged">
     <Grid>
         <Button Content="launch" Height="23" Margin="0,62,12,0" Name="launch" VerticalAlignment="Top" Click="launch_Click" HorizontalAlignment="Right" Width="75" />
         <TextBox Height="23" HorizontalAlignment="Left" Margin="10,63,0,0" Name="username" VerticalAlignment="Top" Width="120" />
