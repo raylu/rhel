@@ -91,5 +91,9 @@ namespace rhel {
 			string accessToken = urlFragment.Substring(start, urlFragment.IndexOf('&') - start);
 			return accessToken;
 		}
+
+		private void credentialsChanged(object sender, EventArgs e) {
+			this.main.saveCredentials();
+		}
 	}
 }

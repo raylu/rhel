@@ -34,5 +34,16 @@ namespace rhel.Properties {
                 this["evePath"] = value;
             }
         }
+        
+        [global::System.Configuration.UserScopedSettingAttribute()]
+        [global::System.Diagnostics.DebuggerNonUserCodeAttribute()]
+        public global::System.Collections.Specialized.StringCollection accounts {
+            get {
+                return ((global::System.Collections.Specialized.StringCollection)(this["accounts"]));
+            }
+            set {
+                this["accounts"] = value;
+            }
+        }
     }
 }

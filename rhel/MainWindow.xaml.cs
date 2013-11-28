@@ -4,6 +4,7 @@ using System.Configuration;
 using System.Diagnostics;
 using System.IO;
 using System.Windows;
+using System.Collections.Specialized;
 
 namespace rhel {
 	public partial class MainWindow : Window {
@@ -30,6 +31,16 @@ namespace rhel {
 				}
 			}
 			this.txtEvePath.Text = Properties.Settings.Default.evePath;
+
+			if (Properties.Settings.Default.accounts != null) {
+				foreach (string credentials in Properties.Settings.Default.accounts) {
+					Account account = new Account(this);
+					string[] split = credentials.Split(new char[]{':'}, 2);
+					account.username.Text = split[0];
+					account.password.Password = split[1];
+					this.accountsPanel.Children.Add(account);
+				}
+			}
 
 			this.tray = new System.Windows.Forms.NotifyIcon();
 			this.tray.Icon = System.Drawing.Icon.ExtractAssociatedIcon(Application.ResourceAssembly.Location);
@@ -74,6 +85,16 @@ namespace rhel {
 		}
 		public void evePath(string path) {
 			Properties.Settings.Default.evePath = path;
+			Properties.Settings.Default.Save();
+		}
+
+		public void saveCredentials() {
+			StringCollection accounts = new StringCollection();
+			foreach (Account account in this.accountsPanel.Children) {
+				string credentials = String.Format("{0}:{1}", account.username.Text, account.password.Password);
+				accounts.Add(credentials);
+			}
+			Properties.Settings.Default.accounts = accounts;
 			Properties.Settings.Default.Save();
 		}
 
