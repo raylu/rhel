@@ -3,8 +3,6 @@ using System.Collections.Generic;
 using System.Configuration;
 using System.Diagnostics;
 using System.IO;
-using System.Net;
-using System.Text;
 using System.Windows;
 
 namespace rhel {
@@ -31,7 +29,7 @@ namespace rhel {
 					Properties.Settings.Default.Save();
 				}
 			}
-			this.evePath.Text = Properties.Settings.Default.evePath;
+			this.txtEvePath.Text = Properties.Settings.Default.evePath;
 
 			this.tray = new System.Windows.Forms.NotifyIcon();
 			this.tray.Icon = System.Drawing.Icon.ExtractAssociatedIcon(Application.ResourceAssembly.Location);
@@ -41,8 +39,6 @@ namespace rhel {
 		}
 
 		private void Window_Closing(object sender, System.ComponentModel.CancelEventArgs e) {
-			Properties.Settings.Default.evePath = this.evePath.Text;
-			Properties.Settings.Default.Save();
 			this.tray.Visible = false;
 		}
 
@@ -57,78 +53,32 @@ namespace rhel {
 		private void browse_Click(object sender, RoutedEventArgs e) {
 			System.Windows.Forms.FolderBrowserDialog fbd = new System.Windows.Forms.FolderBrowserDialog();
 			fbd.ShowNewFolderButton = false;
-			fbd.SelectedPath = this.evePath.Text;
+			fbd.SelectedPath = this.txtEvePath.Text;
 			if (fbd.ShowDialog() == System.Windows.Forms.DialogResult.OK) {
 				string exefilePath = Path.Combine(fbd.SelectedPath, "bin", "ExeFile.exe");
-				if (File.Exists(exefilePath))
-					this.evePath.Text = fbd.SelectedPath;
-				else
-					this.tray.ShowBalloonTip(1000, "eve path", "could not find " + exefilePath, System.Windows.Forms.ToolTipIcon.Error);
+				if (File.Exists(exefilePath)) {
+					this.txtEvePath.Text = fbd.SelectedPath;
+					this.evePath(fbd.SelectedPath);
+				} else
+					this.showBalloon("eve path", "could not find " + exefilePath, System.Windows.Forms.ToolTipIcon.Error);
 			}
 		}
 
-		private void launch_Click(object sender, RoutedEventArgs e) {
-			string exefilePath = Path.Combine(this.evePath.Text, "bin", "ExeFile.exe");
-			if (!File.Exists(exefilePath)) {
-				this.tray.ShowBalloonTip(1000, "eve path", "could not find " + exefilePath, System.Windows.Forms.ToolTipIcon.Error);
-				return;
-			}
-			string ssoToken = this.getSSOToken(this.username.Text, this.password.Password);
-			if (ssoToken == null) {
-				this.tray.ShowBalloonTip(1000, "logging in", "invalid username/password", System.Windows.Forms.ToolTipIcon.Error);
-				return;
-			}
-			this.tray.ShowBalloonTip(1000, "logging in", "launching", System.Windows.Forms.ToolTipIcon.None);
-			const string args = @"/noconsole /ssoToken={0} /triPlatform=dx11";
-			System.Diagnostics.ProcessStartInfo psi = new System.Diagnostics.ProcessStartInfo(
-				@".\bin\ExeFile.exe", String.Format(args, ssoToken)
-			);
-			psi.WorkingDirectory = this.evePath.Text;
-			System.Diagnostics.Process.Start(psi);
+		private void addAccount_Click(object sender, RoutedEventArgs e) {
+			Account account = new Account(this);
+			this.accountsPanel.Children.Add(account);
 		}
 
-		private string getAccessToken(string username, string password) {
-			this.tray.ShowBalloonTip(1000, "logging in", "getting access token", System.Windows.Forms.ToolTipIcon.None);
-			const string uri = "https://login.eveonline.com/Account/LogOn?ReturnUrl=%2Foauth%2Fauthorize%2F%3Fclient_id%3DeveLauncherTQ%26lang%3Den%26response_type%3Dtoken%26redirect_uri%3Dhttps%3A%2F%2Flogin.eveonline.com%2Flauncher%3Fclient_id%3DeveLauncherTQ%26scope%3DeveClientToken";
-			HttpWebRequest req = (HttpWebRequest)HttpWebRequest.Create(uri);
-			req.AllowAutoRedirect = true;
-			req.Headers.Add("Origin", "https://login.eveonline.com");
-			req.Referer = uri;
-			req.CookieContainer = new CookieContainer(8);
-			req.Method = "POST";
-			req.ContentType = "application/x-www-form-urlencoded";
-			byte[] body = Encoding.ASCII.GetBytes(String.Format("UserName={0}&Password={1}", username, password));
-			req.ContentLength = body.Length;
-			Stream reqStream = req.GetRequestStream();
-			reqStream.Write(body, 0, body.Length);
-			reqStream.Close();
-			HttpWebResponse resp = (HttpWebResponse)req.GetResponse();
-			// https://login.eveonline.com/launcher?client_id=eveLauncherTQ#access_token=...&token_type=Bearer&expires_in=43200
-			string accessToken = this.extractAccessToken(resp.ResponseUri.Fragment);
-			return accessToken;
+		public string evePath() {
+			return Properties.Settings.Default.evePath;
+		}
+		public void evePath(string path) {
+			Properties.Settings.Default.evePath = path;
+			Properties.Settings.Default.Save();
 		}
 
-		private string getSSOToken(string username, string password) {
-			string accessToken = this.getAccessToken(username, password);
-			if (accessToken == null)
-				return null;
-			this.tray.ShowBalloonTip(1000, "logging in", "getting SSO token", System.Windows.Forms.ToolTipIcon.None);
-			string uri = "https://login.eveonline.com/launcher/token?accesstoken=" + accessToken;
-			HttpWebRequest req = (HttpWebRequest)HttpWebRequest.Create(uri);
-			req.AllowAutoRedirect = false;
-			HttpWebResponse resp = (HttpWebResponse)req.GetResponse();
-			string ssoToken = this.extractAccessToken(resp.GetResponseHeader("Location"));
-			return ssoToken;
-		}
-
-		private string extractAccessToken(string urlFragment) {
-			const string search = "#access_token=";
-			int start = urlFragment.IndexOf(search);
-			if (start == -1)
-				return null;
-			start += search.Length;
-			string accessToken = urlFragment.Substring(start, urlFragment.IndexOf('&') - start);
-			return accessToken;
+		public void showBalloon(string title, string text, System.Windows.Forms.ToolTipIcon icon) {
+			this.tray.ShowBalloonTip(1000, title, text, icon);
 		}
 	}
 }
