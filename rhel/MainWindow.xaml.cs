@@ -9,6 +9,7 @@ using System.Collections.Specialized;
 namespace rhel {
 	public partial class MainWindow : Window {
 		System.Windows.Forms.NotifyIcon tray; // yes, we're using Windows.Forms in a WPF project
+		EventHandler contextMenuClick;
 
 		public MainWindow() {
 			InitializeComponent();
@@ -32,6 +33,13 @@ namespace rhel {
 			}
 			this.txtEvePath.Text = Properties.Settings.Default.evePath;
 
+			this.tray = new System.Windows.Forms.NotifyIcon();
+			this.tray.Icon = System.Drawing.Icon.ExtractAssociatedIcon(Application.ResourceAssembly.Location);
+			this.tray.Text = this.Title;
+			this.tray.ContextMenu = new System.Windows.Forms.ContextMenu();
+			this.tray.MouseClick += new System.Windows.Forms.MouseEventHandler(this.tray_Click);
+			this.contextMenuClick = new EventHandler(this.contextMenu_Click);
+
 			if (Properties.Settings.Default.accounts != null) {
 				foreach (string credentials in Properties.Settings.Default.accounts) {
 					Account account = new Account(this);
@@ -39,13 +47,10 @@ namespace rhel {
 					account.username.Text = split[0];
 					account.password.Password = split[1];
 					this.accountsPanel.Children.Add(account);
+					this.tray.ContextMenu.MenuItems.Add(split[0], this.contextMenuClick);
 				}
 			}
 
-			this.tray = new System.Windows.Forms.NotifyIcon();
-			this.tray.Icon = System.Drawing.Icon.ExtractAssociatedIcon(Application.ResourceAssembly.Location);
-			this.tray.Text = this.Title;
-			this.tray.MouseClick += new System.Windows.Forms.MouseEventHandler(this.tray_Click);
 			this.tray.Visible = true;
 		}
 
@@ -57,8 +62,19 @@ namespace rhel {
 			this.ShowInTaskbar = (this.WindowState != System.Windows.WindowState.Minimized);
 		}
 
-		private void tray_Click(object sender, EventArgs e) {
-			this.WindowState = System.Windows.WindowState.Normal;
+		private void tray_Click(object sender, System.Windows.Forms.MouseEventArgs e) {
+			if (e.Button == System.Windows.Forms.MouseButtons.Left)
+				this.WindowState = System.Windows.WindowState.Normal;
+		}
+
+		private void contextMenu_Click(object sender, EventArgs e) {
+			string username = ((System.Windows.Forms.MenuItem)sender).Text;
+			foreach (Account account in this.accountsPanel.Children) {
+				if (account.username.Text == username) {
+					account.launchAccount();
+					break;
+				}
+			}
 		}
 
 		private void browse_Click(object sender, RoutedEventArgs e) {
@@ -88,11 +104,13 @@ namespace rhel {
 			Properties.Settings.Default.Save();
 		}
 
-		public void saveCredentials() {
+		public void updateCredentials() {
 			StringCollection accounts = new StringCollection();
+			this.tray.ContextMenu.MenuItems.Clear();
 			foreach (Account account in this.accountsPanel.Children) {
 				string credentials = String.Format("{0}:{1}", account.username.Text, account.password.Password);
 				accounts.Add(credentials);
+				this.tray.ContextMenu.MenuItems.Add(account.username.Text, this.contextMenuClick);
 			}
 			Properties.Settings.Default.accounts = accounts;
 			Properties.Settings.Default.Save();

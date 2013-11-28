@@ -29,6 +29,15 @@ namespace rhel {
 		}
 
 		private void launch_Click(object sender, RoutedEventArgs e) {
+			this.launchAccount();
+		}
+
+		private void delete_Click(object sender, RoutedEventArgs e) {
+			this.main.accountsPanel.Children.Remove(this);
+			this.main.updateCredentials();
+		}
+
+		public void launchAccount() {
 			string exefilePath = Path.Combine(this.main.evePath(), "bin", "ExeFile.exe");
 			if (!File.Exists(exefilePath)) {
 				this.main.showBalloon("eve path", "could not find " + exefilePath, System.Windows.Forms.ToolTipIcon.Error);
@@ -93,12 +102,7 @@ namespace rhel {
 		}
 
 		private void credentialsChanged(object sender, EventArgs e) {
-			this.main.saveCredentials();
-		}
-
-		private void delete_Click(object sender, RoutedEventArgs e) {
-			this.main.accountsPanel.Children.Remove(this);
-			this.main.saveCredentials();
+			this.main.updateCredentials();
 		}
 	}
 }
