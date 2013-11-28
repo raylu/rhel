@@ -77,17 +77,17 @@ namespace rhel {
 			}
 		}
 
+		private void txtEvePath_LostFocus(object sender, RoutedEventArgs e) {
+			this.evePath(this.txtEvePath.Text);
+		}
+
 		private void browse_Click(object sender, RoutedEventArgs e) {
 			System.Windows.Forms.FolderBrowserDialog fbd = new System.Windows.Forms.FolderBrowserDialog();
 			fbd.ShowNewFolderButton = false;
 			fbd.SelectedPath = this.txtEvePath.Text;
 			if (fbd.ShowDialog() == System.Windows.Forms.DialogResult.OK) {
-				string exefilePath = Path.Combine(fbd.SelectedPath, "bin", "ExeFile.exe");
-				if (File.Exists(exefilePath)) {
-					this.txtEvePath.Text = fbd.SelectedPath;
-					this.evePath(fbd.SelectedPath);
-				} else
-					this.showBalloon("eve path", "could not find " + exefilePath, System.Windows.Forms.ToolTipIcon.Error);
+				this.txtEvePath.Text = fbd.SelectedPath;
+				this.evePath(fbd.SelectedPath);
 			}
 		}
 
@@ -100,8 +100,12 @@ namespace rhel {
 			return Properties.Settings.Default.evePath;
 		}
 		public void evePath(string path) {
-			Properties.Settings.Default.evePath = path;
-			Properties.Settings.Default.Save();
+			string exefilePath = Path.Combine(path, "bin", "ExeFile.exe");
+			if (File.Exists(exefilePath)) {
+				Properties.Settings.Default.evePath = path;
+				Properties.Settings.Default.Save();
+			} else
+				this.showBalloon("eve path", "could not find " + exefilePath, System.Windows.Forms.ToolTipIcon.Error);
 		}
 
 		public void updateCredentials() {
