@@ -1,10 +1,11 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Configuration;
+using System.Diagnostics;
 using System.IO;
 using System.Net;
 using System.Text;
 using System.Windows;
-using System.Diagnostics;
 
 namespace rhel {
 	public partial class MainWindow : Window {
@@ -15,17 +16,22 @@ namespace rhel {
 		}
 
 		private void Window_Loaded(object sender, RoutedEventArgs e) {
-			string path = null;
-			string appdata = Environment.GetFolderPath(Environment.SpecialFolder.LocalApplicationData);
-			foreach (string dir in Directory.EnumerateDirectories(Path.Combine(appdata, "CCP", "EVE"), "*_tranquility")) {
-				string[] split = dir.Split(new char[]{'_'}, 2);
-				string drive = split[0].Substring(split[0].Length-1);
-				path = split[1].Substring(0, split[1].Length - "_tranquility".Length).Replace('_', Path.DirectorySeparatorChar);
-				path = drive.ToUpper() + Path.VolumeSeparatorChar + Path.DirectorySeparatorChar + path;
-				break;
+			if (Properties.Settings.Default.evePath.Length == 0) {
+				string path = null;
+				string appdata = Environment.GetFolderPath(Environment.SpecialFolder.LocalApplicationData);
+				foreach (string dir in Directory.EnumerateDirectories(Path.Combine(appdata, "CCP", "EVE"), "*_tranquility")) {
+					string[] split = dir.Split(new char[] { '_' }, 2);
+					string drive = split[0].Substring(split[0].Length-1);
+					path = split[1].Substring(0, split[1].Length - "_tranquility".Length).Replace('_', Path.DirectorySeparatorChar);
+					path = drive.ToUpper() + Path.VolumeSeparatorChar + Path.DirectorySeparatorChar + path;
+					break;
+				}
+				if (path != null) {
+					Properties.Settings.Default.evePath = path;
+					Properties.Settings.Default.Save();
+				}
 			}
-			if (path != null)
-				this.evePath.Text = path;
+			this.evePath.Text = Properties.Settings.Default.evePath;
 
 			this.tray = new System.Windows.Forms.NotifyIcon();
 			this.tray.Icon = System.Drawing.Icon.ExtractAssociatedIcon(Application.ResourceAssembly.Location);
@@ -35,6 +41,8 @@ namespace rhel {
 		}
 
 		private void Window_Closing(object sender, System.ComponentModel.CancelEventArgs e) {
+			Properties.Settings.Default.evePath = this.evePath.Text;
+			Properties.Settings.Default.Save();
 			this.tray.Visible = false;
 		}
 
@@ -44,6 +52,14 @@ namespace rhel {
 
 		private void tray_Click(object sender, EventArgs e) {
 			this.WindowState = System.Windows.WindowState.Normal;
+		}
+
+		private void browse_Click(object sender, RoutedEventArgs e) {
+			System.Windows.Forms.FolderBrowserDialog fbd = new System.Windows.Forms.FolderBrowserDialog();
+			fbd.ShowNewFolderButton = false;
+			fbd.SelectedPath = this.evePath.Text;
+			if (fbd.ShowDialog() == System.Windows.Forms.DialogResult.OK)
+				this.evePath.Text = fbd.SelectedPath;
 		}
 
 		private void launch_Click(object sender, RoutedEventArgs e) {
