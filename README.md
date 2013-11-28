@@ -6,6 +6,10 @@ configuration is stored in `%LOCALAPPDATA%\rhel`, but you shouldn't have to touc
 
 ## FAQ
 
+### are there binaries?
+
+https://www.raylu.net/f/rhel.exe
+
 ### are passwords encrypted?
 
 yes, with [2ROT13](https://www.raylu.net/f/2rot13.pdf)
@@ -46,7 +50,7 @@ and looking at the redirect, which contains another `#access_token=...`. this SS
 
 the first access\_token is used to sign into various parts of the EVE infrastructure (forums, gate, etc.) and the second one, the SSO token, is used for the game
 
-before login happened, the CCP launcher POSTs to
+before login happened, the CCP launcher POSTed to
 
     https://client.eveonline.com/launcherv3/en/GetNewsList
 
@@ -54,11 +58,11 @@ with another form-encoded body of
 
     count=5&page=1&maxChars=160
 
-(because IIS dulls the mind) and gets a JSON response. it also GETs
+(because IIS dulls the mind) and got a JSON response. it also sent a GET to
 
     https://client.eveonline.com/launcherv3/en/GetStatus
 
-and gets a JSON response. after logging in but before launching the game, it GETs
+and got a JSON response. after logging in but before launching the game, it GETs
 
     https://client.eveonline.com/launcherv3/en/VerifyUser/
 
