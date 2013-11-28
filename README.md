@@ -30,7 +30,7 @@ the CCP launcher loads
 
 which loads
 
-    https://login.eveonline.com/Account/LogOn?ReturnUrl=/oauth/authorize/?client_id=eveLauncherTQ&lang=en&response_type=token&redirect_uri=https://login.eveonline.com/launcher?client_id=eveLauncherTQ&scope=eveClientToken"
+    https://login.eveonline.com/Account/LogOn?ReturnUrl=/oauth/authorize/?client_id=eveLauncherTQ&lang=en&response_type=token&redirect_uri=https://login.eveonline.com/launcher?client_id=eveLauncherTQ&scope=eveClientToken
 
 in a frame. the `client_id=eveLauncherTQ` field causes a completely different page to be presented. clicking "login" submits a POST to that same url with a standard form-encoded body
 

@@ -42,8 +42,17 @@ namespace rhel {
 			if (!File.Exists(exefilePath)) {
 				this.main.showBalloon("eve path", "could not find " + exefilePath, System.Windows.Forms.ToolTipIcon.Error);
 				return;
+			} else if (this.username.Text.Length == 0 || this.password.Password.Length == 0) {
+				this.main.showBalloon("logging in", "missing username or password", System.Windows.Forms.ToolTipIcon.Error);
+				return;
 			}
-			string ssoToken = this.getSSOToken(this.username.Text, this.password.Password);
+			string ssoToken = null;
+			try {
+				ssoToken = this.getSSOToken(this.username.Text, this.password.Password);
+			} catch (WebException e) {
+				this.main.showBalloon("logging in", e.Message, System.Windows.Forms.ToolTipIcon.Error);
+				return;
+			}
 			if (ssoToken == null) {
 				this.main.showBalloon("logging in", "invalid username/password", System.Windows.Forms.ToolTipIcon.Error);
 				return;
@@ -58,9 +67,10 @@ namespace rhel {
 		}
 
 		private string getAccessToken(string username, string password) {
-			this.main.showBalloon("logging in", "getting access token", System.Windows.Forms.ToolTipIcon.None);
+			this.main.showBalloon("logging in", username, System.Windows.Forms.ToolTipIcon.None);
 			const string uri = "https://login.eveonline.com/Account/LogOn?ReturnUrl=%2Foauth%2Fauthorize%2F%3Fclient_id%3DeveLauncherTQ%26lang%3Den%26response_type%3Dtoken%26redirect_uri%3Dhttps%3A%2F%2Flogin.eveonline.com%2Flauncher%3Fclient_id%3DeveLauncherTQ%26scope%3DeveClientToken";
 			HttpWebRequest req = (HttpWebRequest)HttpWebRequest.Create(uri);
+			req.Timeout = 5000;
 			req.AllowAutoRedirect = true;
 			req.Headers.Add("Origin", "https://login.eveonline.com");
 			req.Referer = uri;
@@ -82,9 +92,9 @@ namespace rhel {
 			string accessToken = this.getAccessToken(username, password);
 			if (accessToken == null)
 				return null;
-			this.main.showBalloon("logging in", "getting SSO token", System.Windows.Forms.ToolTipIcon.None);
 			string uri = "https://login.eveonline.com/launcher/token?accesstoken=" + accessToken;
 			HttpWebRequest req = (HttpWebRequest)HttpWebRequest.Create(uri);
+			req.Timeout = 5000;
 			req.AllowAutoRedirect = false;
 			HttpWebResponse resp = (HttpWebResponse)req.GetResponse();
 			string ssoToken = this.extractAccessToken(resp.GetResponseHeader("Location"));
