@@ -26,7 +26,7 @@ namespace rhel {
 					path = drive.ToUpper() + Path.VolumeSeparatorChar + Path.DirectorySeparatorChar + path;
 					break;
 				}
-				if (path != null) {
+				if (path != null && File.Exists(Path.Combine(path, "bin", "ExeFile.exe"))) {
 					Properties.Settings.Default.evePath = path;
 					Properties.Settings.Default.Save();
 				}
@@ -58,11 +58,21 @@ namespace rhel {
 			System.Windows.Forms.FolderBrowserDialog fbd = new System.Windows.Forms.FolderBrowserDialog();
 			fbd.ShowNewFolderButton = false;
 			fbd.SelectedPath = this.evePath.Text;
-			if (fbd.ShowDialog() == System.Windows.Forms.DialogResult.OK)
-				this.evePath.Text = fbd.SelectedPath;
+			if (fbd.ShowDialog() == System.Windows.Forms.DialogResult.OK) {
+				string exefilePath = Path.Combine(fbd.SelectedPath, "bin", "ExeFile.exe");
+				if (File.Exists(exefilePath))
+					this.evePath.Text = fbd.SelectedPath;
+				else
+					this.tray.ShowBalloonTip(1000, "eve path", "could not find " + exefilePath, System.Windows.Forms.ToolTipIcon.Error);
+			}
 		}
 
 		private void launch_Click(object sender, RoutedEventArgs e) {
+			string exefilePath = Path.Combine(this.evePath.Text, "bin", "ExeFile.exe");
+			if (!File.Exists(exefilePath)) {
+				this.tray.ShowBalloonTip(1000, "eve path", "could not find " + exefilePath, System.Windows.Forms.ToolTipIcon.Error);
+				return;
+			}
 			string ssoToken = this.getSSOToken(this.username.Text, this.password.Password);
 			if (ssoToken == null) {
 				this.tray.ShowBalloonTip(1000, "logging in", "invalid username/password", System.Windows.Forms.ToolTipIcon.Error);
