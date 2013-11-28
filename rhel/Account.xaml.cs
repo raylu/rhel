@@ -95,5 +95,10 @@ namespace rhel {
 		private void credentialsChanged(object sender, EventArgs e) {
 			this.main.saveCredentials();
 		}
+
+		private void delete_Click(object sender, RoutedEventArgs e) {
+			this.main.accountsPanel.Children.Remove(this);
+			this.main.saveCredentials();
+		}
 	}
 }
