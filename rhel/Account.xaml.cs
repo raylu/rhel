@@ -22,6 +22,8 @@ namespace rhel {
 	/// </summary>
 	public partial class Account : UserControl {
 		MainWindow main;
+		string accessToken;
+		DateTime accessTokenExpiration;
 
 		public Account(MainWindow main) {
 			InitializeComponent();
@@ -46,10 +48,12 @@ namespace rhel {
 				this.main.showBalloon("logging in", "missing username or password", System.Windows.Forms.ToolTipIcon.Error);
 				return;
 			}
+			this.main.showBalloon("logging in", this.username.Text, System.Windows.Forms.ToolTipIcon.None);
 			string ssoToken = null;
 			try {
 				ssoToken = this.getSSOToken(this.username.Text, this.password.Password);
 			} catch (WebException e) {
+				this.accessToken = null;
 				this.main.showBalloon("logging in", e.Message, System.Windows.Forms.ToolTipIcon.Error);
 				return;
 			}
@@ -67,7 +71,8 @@ namespace rhel {
 		}
 
 		private string getAccessToken(string username, string password) {
-			this.main.showBalloon("logging in", username, System.Windows.Forms.ToolTipIcon.None);
+			if (this.accessToken != null && DateTime.UtcNow < this.accessTokenExpiration)
+				return this.accessToken;
 			const string uri = "https://login.eveonline.com/Account/LogOn?ReturnUrl=%2Foauth%2Fauthorize%2F%3Fclient_id%3DeveLauncherTQ%26lang%3Den%26response_type%3Dtoken%26redirect_uri%3Dhttps%3A%2F%2Flogin.eveonline.com%2Flauncher%3Fclient_id%3DeveLauncherTQ%26scope%3DeveClientToken";
 			HttpWebRequest req = (HttpWebRequest)HttpWebRequest.Create(uri);
 			req.Timeout = 5000;
@@ -85,6 +90,8 @@ namespace rhel {
 			HttpWebResponse resp = (HttpWebResponse)req.GetResponse();
 			// https://login.eveonline.com/launcher?client_id=eveLauncherTQ#access_token=...&token_type=Bearer&expires_in=43200
 			string accessToken = this.extractAccessToken(resp.ResponseUri.Fragment);
+			this.accessToken = accessToken;
+			this.accessTokenExpiration = DateTime.UtcNow + TimeSpan.FromHours(11); // expiry is 12 hours; we use 11 to be safe
 			return accessToken;
 		}
 
