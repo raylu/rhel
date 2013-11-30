@@ -40,6 +40,8 @@ namespace rhel {
 			this.tray.MouseClick += new System.Windows.Forms.MouseEventHandler(this.tray_Click);
 			this.contextMenuClick = new EventHandler(this.contextMenu_Click);
 
+			this.tray.ContextMenu.MenuItems.Add("launch all", this.contextMenuClick);
+			this.tray.ContextMenu.MenuItems.Add("-");
 			if (Properties.Settings.Default.accounts != null) {
 				foreach (string credentials in Properties.Settings.Default.accounts) {
 					Account account = new Account(this);
@@ -69,12 +71,16 @@ namespace rhel {
 
 		private void contextMenu_Click(object sender, EventArgs e) {
 			string username = ((System.Windows.Forms.MenuItem)sender).Text;
-			foreach (Account account in this.accountsPanel.Children) {
-				if (account.username.Text == username) {
+			if (username == "launch all")
+				foreach (Account account in this.accountsPanel.Children)
 					account.launchAccount();
-					break;
+			else
+				foreach (Account account in this.accountsPanel.Children) {
+					if (account.username.Text == username) {
+						account.launchAccount();
+						break;
+					}
 				}
-			}
 		}
 
 		private void txtEvePath_LostFocus(object sender, RoutedEventArgs e) {
@@ -110,7 +116,8 @@ namespace rhel {
 
 		public void updateCredentials() {
 			StringCollection accounts = new StringCollection();
-			this.tray.ContextMenu.MenuItems.Clear();
+			while (this.tray.ContextMenu.MenuItems.Count > 2) // remove everything but "launch all" and separator
+				this.tray.ContextMenu.MenuItems.RemoveAt(this.tray.ContextMenu.MenuItems.Count - 1);
 			foreach (Account account in this.accountsPanel.Children) {
 				string credentials = String.Format("{0}:{1}", account.username.Text, account.password.Password);
 				accounts.Add(credentials);
