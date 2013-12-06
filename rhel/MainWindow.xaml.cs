@@ -9,6 +9,7 @@ using System.Collections.Specialized;
 namespace rhel {
 	public partial class MainWindow : Window {
 		System.Windows.Forms.NotifyIcon tray; // yes, we're using Windows.Forms in a WPF project
+		bool saveAccounts = false;
 		EventHandler contextMenuClick;
 
 		public MainWindow() {
@@ -54,6 +55,7 @@ namespace rhel {
 			}
 
 			this.tray.Visible = true;
+			this.saveAccounts = true;
 		}
 
 		private void Window_Closing(object sender, System.ComponentModel.CancelEventArgs e) {
@@ -115,6 +117,8 @@ namespace rhel {
 		}
 
 		public void updateCredentials() {
+			if (!this.saveAccounts) // don't save accounts when we're still loading them into textboxes
+				return;
 			StringCollection accounts = new StringCollection();
 			while (this.tray.ContextMenu.MenuItems.Count > 2) // remove everything but "launch all" and separator
 				this.tray.ContextMenu.MenuItems.RemoveAt(this.tray.ContextMenu.MenuItems.Count - 1);
