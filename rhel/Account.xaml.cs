@@ -91,7 +91,7 @@ namespace rhel {
 			// https://login.eveonline.com/launcher?client_id=eveLauncherTQ#access_token=...&token_type=Bearer&expires_in=43200
 			string accessToken = this.extractAccessToken(resp.ResponseUri.Fragment);
 			this.accessToken = accessToken;
-			this.accessTokenExpiration = DateTime.UtcNow + TimeSpan.FromHours(11); // expiry is 12 hours; we use 11 to be safe
+			this.accessTokenExpiration = DateTime.UtcNow + TimeSpan.FromHours(1); // expiry is 12 hours; we use 1 because we get timeouts after a bad SSO token
 			return accessToken;
 		}
 
