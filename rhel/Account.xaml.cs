@@ -90,8 +90,9 @@ namespace rhel {
 			HttpWebResponse resp = (HttpWebResponse)req.GetResponse();
 			// https://login.eveonline.com/launcher?client_id=eveLauncherTQ#access_token=...&token_type=Bearer&expires_in=43200
 			string accessToken = this.extractAccessToken(resp.ResponseUri.Fragment);
+			resp.Close(); // WTF.NET http://stackoverflow.com/questions/11712232/ and http://stackoverflow.com/questions/1500955/
 			this.accessToken = accessToken;
-			this.accessTokenExpiration = DateTime.UtcNow + TimeSpan.FromHours(1); // expiry is 12 hours; we use 1 because we get timeouts after a bad SSO token
+			this.accessTokenExpiration = DateTime.UtcNow + TimeSpan.FromHours(11); // expiry is 12 hours; we use 11 to be safe
 			return accessToken;
 		}
 
@@ -105,6 +106,7 @@ namespace rhel {
 			req.AllowAutoRedirect = false;
 			HttpWebResponse resp = (HttpWebResponse)req.GetResponse();
 			string ssoToken = this.extractAccessToken(resp.GetResponseHeader("Location"));
+			resp.Close();
 			return ssoToken;
 		}
 
