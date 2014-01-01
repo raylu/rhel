@@ -82,7 +82,7 @@ namespace rhel {
 			req.CookieContainer = new CookieContainer(8);
 			req.Method = "POST";
 			req.ContentType = "application/x-www-form-urlencoded";
-			byte[] body = Encoding.ASCII.GetBytes(String.Format("UserName={0}&Password={1}", username, password));
+			byte[] body = Encoding.ASCII.GetBytes(String.Format("UserName={0}&Password={1}", username, Uri.EscapeDataString(password)));
 			req.ContentLength = body.Length;
 			Stream reqStream = req.GetRequestStream();
 			reqStream.Write(body, 0, body.Length);
